@@ -6,6 +6,7 @@
 (require a86/ast)
 
 (define rax 'rax)
+(define rbx 'rbx)
 
 ;; Expr -> Asm
 (define (compile e)
@@ -22,7 +23,7 @@
     ;; TODO: Handle cond
     [(Cond cs e)     (compile-cond cs e)]
     ;; TODO: Handle case
-    ;;[(Case e1 cs e2) (compile-case e1 cs e2)]
+    [(Case e1 cs e2) (compile-case e1 cs e2 '() #f)]
     [(If e1 e2 e3)
      (compile-if e1 e2 e3)]))
 
@@ -65,6 +66,23 @@
                (Label l2)))]
     ['() (compile-e e)]))
 
-
-
-
+;; Case Expr -> Asm
+(define (compile-case e1 cs e2 lst e)
+  (match lst
+    [(list v t ...) (let (
+                     (l1 (gensym 'case))
+                     (l2 (gensym 'case)))
+                    (seq (compile-e e1)
+                         (Mov rbx rax)
+                         (compile-e v)
+                         (Cmp rax rbx)
+                         (Je l1)
+                         (compile-case e1 cs e2 t e)
+                         (Jmp l2)
+                         (Label l1)
+                         (compile-e e)
+                         (Label l2)))]
+      ['() (match cs
+            [(list (Clause l e3) a ...)
+             (compile-case e1 a e2 l e3)]
+            ['() (compile-e e2)])]))
