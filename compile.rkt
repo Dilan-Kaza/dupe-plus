@@ -69,12 +69,12 @@
 ;; Case Expr -> Asm
 (define (compile-case e1 cs e2 lst e)
   (match lst
-    [(list v t ...) (let (
+    [(list (Lit v) t ...) (let (
                      (l1 (gensym 'case))
                      (l2 (gensym 'case)))
                     (seq (compile-e e1)
                          (Mov rbx rax)
-                         (compile-e v)
+                         (compile-value v)
                          (Cmp rax rbx)
                          (Je l1)
                          (compile-case e1 cs e2 t e)
