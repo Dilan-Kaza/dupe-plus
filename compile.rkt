@@ -20,7 +20,9 @@
     [(Lit d)         (compile-value d)]
     [(Prim1 p e)     (compile-prim1 p e)]
     ;; TODO: Handle cond
+    [(Cond cs e)     (compile-cond cs e)]
     ;; TODO: Handle case
+    [(Case e1 cs e2) (compile-case e1 cs e2)]
     [(If e1 e2 e3)
      (compile-if e1 e2 e3)]))
 
@@ -46,7 +48,22 @@
          (compile-e e3)
          (Label l2))))
 
-
+;; Listof Expr Expr -> Asm
+(define (compile-cond cs e)
+  (match cs
+    [(list (Clause e1 e2) a ...)
+     (let (
+           (l1 (gensym 'cond))
+           (l2 (gensym 'cond)))
+          (seq (compile-e e1)
+               (Cmp rax (value->bits #f))
+               (Je l1)
+               (compile-e e2)
+               (Jmp l2)
+               (Label l1)
+               (compile-cond a e)
+               (Label l2)))]
+    ['() (compile-e e)]))
 
 
 
