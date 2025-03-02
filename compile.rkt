@@ -74,19 +74,19 @@
                    (l2 (gensym 'case)))
                   (append (seq (compile-e e1)
                                (Mov rbx rax))
-                     (compile-contains lst l1)
-                     (seq (compile-case e1 a e2)
-                          (compile-e e2)
-                          (Jmp l2)
-                          (Label l1)
-                          (compile-e e)
-                          (Label l2))))]
+                          (compile-contains lst l1)
+                          (seq (compile-case e1 a e2)
+                               (Jmp l2)
+                               (Label l1)
+                               (compile-e e)
+                               (Label l2))))]
             ['() (compile-e e2)]))
   
 (define (compile-contains lst jmppnt)
   (match lst
     [(list (Lit v) t ...)
                     (append (seq (compile-value v)
-                         (Cmp rax rbx)
-                         (Je jmppnt)) (compile-contains t jmppnt))]
+                                 (Cmp rax rbx)
+                                 (Je jmppnt))
+                            (compile-contains t jmppnt))]
       ['() '()]))
