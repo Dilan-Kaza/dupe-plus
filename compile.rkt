@@ -22,7 +22,7 @@
     ;; TODO: Handle cond
     [(Cond cs e)     (compile-cond cs e)]
     ;; TODO: Handle case
-    [(Case e1 cs e2) (compile-case e1 cs e2)]
+    ;;[(Case e1 cs e2) (compile-case e1 cs e2)]
     [(If e1 e2 e3)
      (compile-if e1 e2 e3)]))
 
@@ -48,7 +48,7 @@
          (compile-e e3)
          (Label l2))))
 
-;; Listof Expr Expr -> Asm
+;; Cond Expr -> Asm
 (define (compile-cond cs e)
   (match cs
     [(list (Clause e1 e2) a ...)
