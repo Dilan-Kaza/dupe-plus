@@ -23,7 +23,7 @@
     ;; TODO: Handle cond
     [(Cond cs e)     (compile-cond cs e)]
     ;; TODO: Handle case
-    [(Case e1 cs e2) (compile-case e1 cs e2 '() #f)]
+    [(Case e1 cs e2) (compile-case e1 cs e2)]
     [(If e1 e2 e3)
      (compile-if e1 e2 e3)]))
 
@@ -67,22 +67,26 @@
     ['() (compile-e e)]))
 
 ;; Case Expr -> Asm
-(define (compile-case e1 cs e2 lst e)
+(define (compile-case e1 cs e2)
+  (match cs
+            [(list (Clause lst e) a ...)
+             (let ((l1 (gensym 'case))
+                   (l2 (gensym 'case)))
+                  (append (seq (compile-e e1)
+                               (Mov rbx rax))
+                     (compile-contains lst l1)
+                     (seq (compile-case e1 a e2)
+                          (compile-e e2)
+                          (Jmp l2)
+                          (Label l1)
+                          (compile-e e)
+                          (Label l2))))]
+            ['() (compile-e e2)]))
+  
+(define (compile-contains lst jmppnt)
   (match lst
-    [(list (Lit v) t ...) (let (
-                     (l1 (gensym 'case))
-                     (l2 (gensym 'case)))
-                    (seq (compile-e e1)
-                         (Mov rbx rax)
-                         (compile-value v)
+    [(list (Lit v) t ...)
+                    (append (seq (compile-value v)
                          (Cmp rax rbx)
-                         (Je l1)
-                         (compile-case e1 cs e2 t e)
-                         (Jmp l2)
-                         (Label l1)
-                         (compile-e e)
-                         (Label l2)))]
-      ['() (match cs
-            [(list (Clause l e3) a ...)
-             (compile-case e1 a e2 l e3)]
-            ['() (compile-e e2)])]))
+                         (Je jmppnt)) (compile-contains t jmppnt))]
+      ['() '()]))
